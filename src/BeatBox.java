@@ -14,6 +14,7 @@ public class BeatBox {
     Sequence sequence;
     Track track;
     JFrame theFrame;
+    JFileChooser fileChooser;
 
     String[] instrumentNames = {"Bass Drum", "Closed Hi-Hat", "Open Hi-Hat", "Acoustic Snare", "Crash Cymbal",
     "Hand Clap", "High Tom", "Hi Bongo", "Maracas", "Whistle", "Low Conga", "Cowbell", "Vibraslap", "Low-mid Tom", "High Agogo", "Open Hi Conga"};
@@ -24,6 +25,7 @@ public class BeatBox {
     }
 
     public void buildGUI(){
+
         theFrame = new JFrame("Cyber BeatBox");
         theFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         BorderLayout layout = new BorderLayout();
@@ -32,6 +34,7 @@ public class BeatBox {
 
         checkboxList = new ArrayList<JCheckBox>();
         Box buttonBox = new Box(BoxLayout.Y_AXIS);
+        fileChooser = new JFileChooser();
 
         JButton start = new JButton("Start");
         start.addActionListener(new MyStartListener());
@@ -172,6 +175,13 @@ public class BeatBox {
         @Override
         public void actionPerformed(ActionEvent e) {
             boolean[] checkboxState = new boolean[256];
+            File saveFile = new File("tempSave.ser");
+
+            fileChooser = new JFileChooser();
+            int ret = fileChooser.showDialog(null, "Сохранить файл");
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                saveFile = fileChooser.getSelectedFile();
+            }
 
             for(int i = 0; i < 256; i++){
                 JCheckBox check = (JCheckBox) checkboxList.get(i);
@@ -181,7 +191,7 @@ public class BeatBox {
             }
 
             try{
-                FileOutputStream fileStream = new FileOutputStream(new File("Checkbox.ser"));
+                FileOutputStream fileStream = new FileOutputStream(saveFile);
                 ObjectOutputStream os = new ObjectOutputStream(fileStream);
                 os.writeObject(checkboxState);
             }catch (Exception ex){
@@ -194,10 +204,17 @@ public class BeatBox {
         //Десериализуем из файла сохраненное состояние чекбоксов
         @Override
         public void actionPerformed(ActionEvent e) {
+            File loadFile = new File("tempSave.ser");
             boolean[] checkboxState = null;
 
+            fileChooser = new JFileChooser();
+            int ret = fileChooser.showDialog(null, "Загрузить файл");
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                loadFile = fileChooser.getSelectedFile();
+            }
+
             try{
-                FileInputStream fileIn = new FileInputStream(new File("Checkbox.ser"));
+                FileInputStream fileIn = new FileInputStream(loadFile);
                 ObjectInputStream is = new ObjectInputStream(fileIn);
                 checkboxState = (boolean[]) is.readObject();
             }catch (Exception ex){
