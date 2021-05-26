@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 
 public class BeatBox {
@@ -47,6 +48,18 @@ public class BeatBox {
         JButton downTempo = new JButton("Tempo down");
         downTempo.addActionListener(new MyDownTempoListener());
         buttonBox.add(downTempo);
+
+        JButton clearBox = new JButton("Clear");
+        clearBox.addActionListener(new MyClearListener());
+        buttonBox.add(clearBox);
+
+        JButton saveFile = new JButton("Save");
+        saveFile.addActionListener(new MySaveListener());
+        buttonBox.add(saveFile);
+
+        JButton loadFile = new JButton("Load");
+        loadFile.addActionListener(new MyLoadListener());
+        buttonBox.add(loadFile);
 
         Box nameBox = new Box(BoxLayout.Y_AXIS);
         for (int i = 0; i < 16; i++) {
@@ -151,6 +164,67 @@ public class BeatBox {
         public void actionPerformed(ActionEvent e) {
             float tempoFactor = sequencer.getTempoFactor();
             sequencer.setTempoFactor((float)(tempoFactor * .97));
+        }
+    }
+
+    public class MySaveListener implements ActionListener{
+        //Сериализуем в файл состояние чекбоксов
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean[] checkboxState = new boolean[256];
+
+            for(int i = 0; i < 256; i++){
+                JCheckBox check = (JCheckBox) checkboxList.get(i);
+                if (check.isSelected()){
+                    checkboxState[i] = true;
+                }
+            }
+
+            try{
+                FileOutputStream fileStream = new FileOutputStream(new File("Checkbox.ser"));
+                ObjectOutputStream os = new ObjectOutputStream(fileStream);
+                os.writeObject(checkboxState);
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public class MyLoadListener implements ActionListener{
+        //Десериализуем из файла сохраненное состояние чекбоксов
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            boolean[] checkboxState = null;
+
+            try{
+                FileInputStream fileIn = new FileInputStream(new File("Checkbox.ser"));
+                ObjectInputStream is = new ObjectInputStream(fileIn);
+                checkboxState = (boolean[]) is.readObject();
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
+
+            for(int i = 0; i < 256; i++){
+                JCheckBox check = (JCheckBox) checkboxList.get(i);
+                if(checkboxState[i]){
+                    check.setSelected(true);
+                }else{
+                    check.setSelected(false);
+                }
+            }
+
+            sequencer.stop();
+            buildTrackAndStart();
+        }
+    }
+
+    public class MyClearListener implements ActionListener{
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (int i = 0; i < 256; i++) {
+                JCheckBox check = checkboxList.get(i);
+                check.setSelected(false);
+            }
         }
     }
 
